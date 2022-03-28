@@ -76,7 +76,8 @@ web_modules/
 .env
 .env.development.local
 .env.test.local
-.env.production.local
+# TODO: Dont expose production config on dev
+# .env.production.local
 .env.local
 
 # parcel-bundler cache (https://parceljs.org/)
