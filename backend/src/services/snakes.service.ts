@@ -63,7 +63,6 @@ class SnakesService extends Repository<UserEntity> {
         const image = await loadImage(path.join(snakePath, part) + '.png');
 
         const mask = await loadImage(path.join(snakePath, part) + '_mask.png');
-        const pattern = await loadImage(path.join(SnakesService.SNAKES_PATTERN_PATH, patternId) + '.png');
 
         ctx.save();
 
@@ -73,14 +72,17 @@ class SnakesService extends Repository<UserEntity> {
 
         ctx.drawImage(image, 0, 0);
 
-        const maskedPattern = createCanvas(32, 32);
-        const maskedPatternCtx = maskedPattern.getContext('2d');
-        maskedPatternCtx.globalCompositeOperation = 'source-out';
+        if (patternId) {
+          const pattern = await loadImage(path.join(SnakesService.SNAKES_PATTERN_PATH, patternId) + '.png');
 
-        maskedPatternCtx.drawImage(mask, 0, 0);
-        maskedPatternCtx.drawImage(pattern, 0, 0);
+          const maskedPattern = createCanvas(32, 32);
+          const maskedPatternCtx = maskedPattern.getContext('2d');
+          maskedPatternCtx.globalCompositeOperation = 'source-out';
 
-        ctx.drawImage(maskedPattern, 0, 0);
+          maskedPatternCtx.drawImage(mask, 0, 0);
+          maskedPatternCtx.drawImage(pattern, 0, 0);
+          ctx.drawImage(maskedPattern, 0, 0);
+        }
 
         if (attrId) {
           const attr = await loadImage(path.join(SnakesService.SNAKES_ATTR_PATH, attrId) + '.png');

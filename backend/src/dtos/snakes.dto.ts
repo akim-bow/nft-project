@@ -4,8 +4,9 @@ export class CreateSnakeDto {
   @IsString()
   public snakeId: string;
 
+  @IsOptional()
   @IsString()
-  public patternId: string;
+  public patternId?: string;
 
   @IsOptional()
   @IsString()
