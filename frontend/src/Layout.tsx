@@ -7,7 +7,7 @@ interface Props {
 
 function Layout({children}: Props) {
     return (
-        <Box sx={{display: "flex"}}>
+        <Box sx={{display: "flex", flexDirection: "column", alignItems: "center"}}>
             {children}
         </Box>
     );
