@@ -4,7 +4,11 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 
-const theme = createTheme();
+const theme = createTheme({
+  palette: {
+    mode: "dark"
+  }
+});
 
 ReactDOM.render(
     <React.StrictMode>
