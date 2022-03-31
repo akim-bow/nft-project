@@ -16,6 +16,7 @@ import { CreateSnakeDto } from '@dtos/snakes.dto';
 import * as fs from 'fs';
 import _ from 'lodash';
 import { SnakeUrl } from '@interfaces/snakes.interface';
+import { Schema } from 'inspector';
 
 @EntityRepository()
 class SnakesService extends Repository<UserEntity> {
@@ -23,10 +24,9 @@ class SnakesService extends Repository<UserEntity> {
   private static IMAGES_PATH = path.resolve(__dirname + '../../../../images');
   private static SNAKES_PATH = path.join(SnakesService.IMAGES_PATH, 'snakes');
   private static SNAKES_PATTERN_PATH = path.join(SnakesService.IMAGES_PATH, 'snake-patterns');
-  private static SNAKES_ATTR_PATH = path.join(SnakesService.IMAGES_PATH, 'snake-attrs');
   private static SNAKES_GENERATED = path.join(SnakesService.IMAGES_PATH, 'generated');
 
-  public async createSnake({ snakeId, patternId, attrId }: CreateSnakeDto): Promise<SnakeUrl> {
+  public async createSnake({ snakeId, patternId, schemaId, attrId }: CreateSnakeDto): Promise<SnakeUrl> {
     const snakePartNames = ['body', 'curve', 'head', 'tail'] as const;
     const snakeParts = ['body.png', 'curve.png', 'head.png', 'tail.png'] as const;
     const snakePartMasks = ['body_mask.png', 'curve_mask.png', 'head_mask.png', 'tail_mask.png'] as const;
@@ -34,6 +34,32 @@ class SnakesService extends Repository<UserEntity> {
     // TODO: Correctly handle file system error
 
     const snakePath = path.join(SnakesService.SNAKES_PATH, snakeId);
+
+    let attrFiles = [];
+
+    if (attrId) {
+      attrFiles = (await fs.promises.readdir(path.join(snakePath, 'attr-sets', attrId))).map(file => file.slice(0, -4));
+    }
+
+    const schemaPath = path.join(snakePath, 'schemas');
+
+    // const schemaPath = path.join(snakePath, 'schemas', (schemeId || 'default') + '.json');
+    const defaultSchema = JSON.parse((await fs.promises.readFile(path.join(schemaPath, 'default.json'))).toString()) as [number, number, number][];
+    const selectedSchema = JSON.parse((await fs.promises.readFile(path.join(schemaPath, schemaId + '.json'))).toString()) as [
+      number,
+      number,
+      number,
+    ][];
+
+    if (defaultSchema.length !== selectedSchema.length) {
+      throw new Error('Bad schema');
+    }
+
+    const mapper = _.zipObject(
+      defaultSchema.map(pixels => pixels.join('.')),
+      selectedSchema,
+    );
+
     // const snakeFiles = await fs.promises.readdir(snakePath);
 
     // const snakePartFiles = _.intersection(snakeParts, snakeFiles);
@@ -55,14 +81,15 @@ class SnakesService extends Repository<UserEntity> {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     for (let y = 0; y < snakePattern.length; y++) {
       for (let x = 0; x < snakePattern[y].length; x++) {
         const node = snakePattern[y][x];
         if (!node) continue;
         const [part, deg] = node.split(':') as [string, string];
         const image = await loadImage(path.join(snakePath, part) + '.png');
-
-        const mask = await loadImage(path.join(snakePath, part) + '_mask.png');
 
         ctx.save();
 
@@ -72,7 +99,27 @@ class SnakesService extends Repository<UserEntity> {
 
         ctx.drawImage(image, 0, 0);
 
+        if (schemaId) {
+          const imageData = ctx.getImageData(x * 32, y * 32, 32, 32);
+          const data = imageData.data;
+
+          for (let i = 0; i < data.length; i += 4) {
+            const currentPixel = [data[i], data[i + 1], data[i + 2]];
+            const mapperKey = currentPixel.join('.');
+            const mapperPixels = mapper[mapperKey];
+
+            if (mapperPixels) {
+              data[i] = mapperPixels[0];
+              data[i + 1] = mapperPixels[1];
+              data[i + 2] = mapperPixels[2];
+            }
+          }
+
+          ctx.putImageData(imageData, x * 32, y * 32);
+        }
+
         if (patternId) {
+          const mask = await loadImage(path.join(snakePath, part) + '_mask.png');
           const pattern = await loadImage(path.join(SnakesService.SNAKES_PATTERN_PATH, patternId) + '.png');
 
           const maskedPattern = createCanvas(32, 32);
@@ -84,8 +131,8 @@ class SnakesService extends Repository<UserEntity> {
           ctx.drawImage(maskedPattern, 0, 0);
         }
 
-        if (attrId) {
-          const attr = await loadImage(path.join(SnakesService.SNAKES_ATTR_PATH, attrId) + '.png');
+        if (attrId && attrFiles.includes(part)) {
+          const attr = await loadImage(path.join(snakePath, 'attr-sets', attrId, part) + '.png');
           ctx.drawImage(attr, 0, 0);
         }
 

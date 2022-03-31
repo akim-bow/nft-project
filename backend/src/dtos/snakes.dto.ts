@@ -1,8 +1,12 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
 export class CreateSnakeDto {
   @IsString()
   public snakeId: string;
+
+  @IsOptional()
+  @IsString()
+  public schemaId?: string;
 
   @IsOptional()
   @IsString()
