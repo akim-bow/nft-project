@@ -15,7 +15,7 @@ import randomstring from 'randomstring';
 import { CreateSnakeDto } from '@dtos/snakes.dto';
 import * as fs from 'fs';
 import _ from 'lodash';
-import { SnakeUrl } from '@interfaces/snakes.interface';
+import { SnakeAsset, SnakeAssets, SnakeUrl } from '@interfaces/snakes.interface';
 import { Schema } from 'inspector';
 
 @EntityRepository()
@@ -174,6 +174,31 @@ class SnakesService extends Repository<UserEntity> {
 
     return {
       url: `/images/generated/${filename}.png`,
+    };
+  }
+
+  public async getSnakeAssets(): Promise<SnakeAssets> {
+    const patterns = (await fs.promises.readdir(SnakesService.SNAKES_PATTERN_PATH)).map(file => file.slice(0, -4));
+    const snakesDirs = await fs.promises.readdir(SnakesService.SNAKES_PATH);
+
+    const snakeAssets: SnakeAsset[] = [];
+
+    for (const snakeId of snakesDirs) {
+      const snakeAttrPaths = path.join(SnakesService.SNAKES_PATH, snakeId, 'attr-sets');
+      const snakeSchemaPaths = path.join(SnakesService.SNAKES_PATH, snakeId, 'schemas');
+      const attrs = await fs.promises.readdir(snakeAttrPaths);
+      const schemas = (await fs.promises.readdir(snakeSchemaPaths)).map(file => file.slice(0, -5));
+
+      snakeAssets.push({
+        id: snakeId,
+        attrs,
+        schemas,
+      });
+    }
+
+    return {
+      patterns,
+      snakes: snakeAssets,
     };
   }
 }

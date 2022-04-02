@@ -14,6 +14,7 @@ class SnakesRoute implements Routes {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/assets`, this.snakesController.getAvailableAssets);
     this.router.post(`${this.path}/mint`, validationMiddleware(CreateSnakeDto, 'body'), this.snakesController.createSnake);
   }
 }

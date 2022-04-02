@@ -15,6 +15,15 @@ class SnakesController {
       next(error);
     }
   };
+
+  public getAvailableAssets = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const snakeAssets = await this.snakesService.getSnakeAssets();
+      res.status(200).json({ data: snakeAssets, message: 'getAll' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default SnakesController;
