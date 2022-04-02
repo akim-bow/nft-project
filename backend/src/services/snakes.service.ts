@@ -35,6 +35,34 @@ class SnakesService extends Repository<UserEntity> {
 
     const snakePath = path.join(SnakesService.SNAKES_PATH, snakeId);
 
+    if (!patternId) {
+      if (Math.random() > 0.5) {
+        const patterns = (await fs.promises.readdir(SnakesService.SNAKES_PATTERN_PATH)).map(file => file.slice(0, -4));
+
+        patternId = _.sample(patterns);
+      }
+    }
+
+    if (!schemaId) {
+      if (Math.random() > 0.5) {
+        const snakeSchemaPaths = path.join(SnakesService.SNAKES_PATH, snakeId, 'schemas');
+        const schemas = (await fs.promises.readdir(snakeSchemaPaths)).map(file => file.slice(0, -5));
+
+        schemaId = _.sample(schemas);
+      } else {
+        schemaId = 'default';
+      }
+    }
+
+    if (!attrId) {
+      if (Math.random() > 0.5) {
+        const snakeAttrPaths = path.join(SnakesService.SNAKES_PATH, snakeId, 'attr-sets');
+        const attrs = await fs.promises.readdir(snakeAttrPaths);
+
+        attrId = _.sample(attrs);
+      }
+    }
+
     let attrFiles = [];
 
     if (attrId) {
