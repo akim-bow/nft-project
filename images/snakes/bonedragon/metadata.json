@@ -1,0 +1,13 @@
+{
+  "mask": false,
+  "schemas": {
+    "default": [
+      "#193c3e",
+      "#265c42",
+      "#63c74d",
+      "#fee761",
+      "#be4a2f"
+    ]
+  },
+  "attrSets": []
+}
