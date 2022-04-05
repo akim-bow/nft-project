@@ -25,7 +25,7 @@ class App {
     this.env = NODE_ENV || 'development';
     this.port = PORT || 3000;
 
-    this.env !== 'test' && this.connectToDatabase();
+    // this.env !== 'test' && this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeRoutes(routes);
     this.initializeSwagger();
