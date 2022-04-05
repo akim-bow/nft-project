@@ -9,6 +9,15 @@ export interface SnakeAsset {
 }
 
 export interface SnakeAssets {
+  arenas: string[];
   patterns: string[];
   snakes: SnakeAsset[];
+}
+
+export interface SnakeMetadata {
+  mask: boolean;
+  schemas: {
+    [schema: string]: string[];
+  };
+  attrSets: string[];
 }

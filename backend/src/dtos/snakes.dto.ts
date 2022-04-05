@@ -1,8 +1,13 @@
-import { IsOptional, IsString, Length, MaxLength } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateSnakeDto {
+  @IsOptional()
   @IsString()
-  public snakeId: string;
+  public arenaId?: string;
+
+  @IsOptional()
+  @IsString()
+  public snakeId?: string;
 
   @IsOptional()
   @IsString()
